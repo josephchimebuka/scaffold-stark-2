@@ -3,22 +3,29 @@ import {
   executeDeployCalls,
   exportDeployments,
   deployer,
+  loadExistingDeployments,
 } from "./deploy-contract";
+import { green, yellow } from "./helpers/colorize-log";
 
 const deployScript = async (): Promise<void> => {
-  await deployContract(
-    {
-      owner: deployer.address, // the deployer address is the owner of the contract
+  const existingDeployments = loadExistingDeployments();
+  if (Object.keys(existingDeployments).length > 0) {
+    console.log(yellow("Appending to existing deployments..."));
+  }
+
+  await deployContract({
+    contract: "YourContract",
+    constructorArgs: {
+      owner: deployer.address,
     },
-    "YourContract "  
-  );
+  });
 };
 
 deployScript()
-  .then(() => {
-    executeDeployCalls().then(() => {
-      exportDeployments();
-    });
-    console.log("All Setup Done");
+  .then(async () => {
+    await executeDeployCalls();
+    exportDeployments();
+
+    console.log(green("All Setup Done"));
   })
   .catch(console.error);
